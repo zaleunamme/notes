@@ -1,0 +1,88 @@
+
+S1>
+S1>en
+Password: 
+S1#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+S1(config)#int e1/0
+S1(config-if)# no shut
+S1(config-if)# ip add 192.168.1.133 255.255.255.224
+S1(config-if)# do bp
+Interface                  IP-Address      OK? Method Status                Protocol
+Ethernet1/0                192.168.1.133   YES manual up                    up      
+
+S1(config-if)#
+S1(config-if)#do ping 192.168.1.133
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.133, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 4/10/16 ms
+S1(config-if)#do ping 192.168.1.129
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.129, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
+S1(config-if)#do ping 192.168.1.129
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.129, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
+S1(config-if)#do ping 192.168.1.129
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.129, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
+S1(config-if)#do ping 192.168.1.129
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.129, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/1 ms
+S1(config-if)#ip route 10.2.1.0 255.255.255.0 192.168.1.129    
+S1(config)#do ping 10.2.1.1
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.2.1.1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/1 ms
+S1(config)#do ping 10.2.2.1
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.2.2.1, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
+S1(config)#ip route 10.2.2.0 255.255.255.0 192.168.1.129
+S1(config)#do ping 10.2.2.1                             
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.2.2.1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/1 ms
+S1(config)#di sh run | inc route
+               ^
+% Invalid input detected at '^' marker.
+
+S1(config)#do sh run | inc route
+ip route 10.2.1.0 255.255.255.0 192.168.1.129
+ip route 10.2.2.0 255.255.255.0 192.168.1.129
+alias exec sr show ip route
+alias exec sr6 show ipv6 route
+S1(config)#ip route 10.2.1.0 255.255.255.0 192.168.1.130 5
+S1(config)#do tracer 10.2.1.1
+Type escape sequence to abort.
+Tracing the route to core1v10.rivanit.com (10.2.1.1)
+VRF info: (vrf in name/id, vrf out name/id)
+  1 core1v100.rivanit.com (192.168.1.129) 1 msec *  0 msec
+S1(config)#no ip route 10.2.1.0 255.255.255.0 192.168.1.129
+S1(config)#do tracer 10.2.1.1                              
+Type escape sequence to abort.
+Tracing the route to core1v10.rivanit.com (10.2.1.1)
+VRF info: (vrf in name/id, vrf out name/id)
+  1 core2v100.rivanit.com (192.168.1.130) 1 msec 0 msec 0 msec
+  2  * 
+    core1v10.rivanit.com (10.2.1.1) 0 msec * 
+S1(config)#ip route 10.2.1.0 255.255.255.0 192.168.1.129   
+S1(config)#do tracer 10.2.1.1                           
+Type escape sequence to abort.
+Tracing the route to core1v10.rivanit.com (10.2.1.1)
+VRF info: (vrf in name/id, vrf out name/id)
+  1 core1v100.rivanit.com (192.168.1.129) 25 msec *  1 msec
+S1(config)#
+
+
