@@ -1,0 +1,361 @@
+task 1: setup static routing for P1 and default routing for P2
+
+P1:
+
+conf t
+int e0/0
+ip add 10.2.1.101 255.255.255.0
+no shut
+end
+
+conf t
+ip route 10.1.4.4 255.255.255.252 10.2.1.1
+ip route 10.2.2.0 255.255.255.0 10.2.1.1
+ip route 192.168.1.128 255.255.255.224 10.2.1.1
+end
+
+P2:
+conf t
+int e1/0
+ip add 10.2.1.102 255.255.255.0
+no shut
+end
+
+conf t
+ip route 0.0.0.0 0.0.0.0 10.2.1.2
+end
+
+TASK 2: configure 64bit eigrp on D1/D2:CCNP and 32bit on R4:CCNA
+how to configure eigrp:
+route the networks:
+
+CHECK D1/D2/R4:
+- show ip route connected | inc C
+D1
+C        10.1.4.4/30 is directly connected, Ethernet1/1
+C        10.2.1.0/24 is directly connected, Vlan10
+C        10.2.2.0/24 is directly connected, Vlan20
+C        192.168.1.128/27 is directly connected, Vlan100
+
+D2
+C        10.1.4.8/30 is directly connected, Ethernet1/1
+C        10.2.1.0/24 is directly connected, Vlan10
+C        10.2.2.0/24 is directly connected, Vlan20
+C        192.168.1.128/27 is directly connected, Vlan100
+
+R4
+C        4.4.4.4 is directly connected, Loopback4
+C        10.1.1.8/30 is directly connected, Ethernet1/2
+C        10.1.4.4/30 is directly connected, Ethernet1/0
+C        10.1.4.8/30 is directly connected, Ethernet1/1
+
+R3
+C        3.3.3.3 is directly connected, Loopback3
+C        10.1.1.4/30 is directly connected, Ethernet1/1
+C        10.1.1.8/30 is directly connected, Ethernet1/2
+
+R2
+C        2.2.2.2 is directly connected, Loopback2
+C        10.1.1.0/30 is directly connected, Ethernet1/2
+C        10.1.1.4/30 is directly connected, Ethernet1/1
+
+R1
+C        1.1.1.1 is directly connected, Loopback1
+C        10.1.1.0/30 is directly connected, Ethernet1/0
+C        207.7.7.0/24 is directly connected, Ethernet1/2
+C        208.8.8.0/24 is directly connected, Ethernet1/1
+C        209.9.9.0/24 is directly connected, Ethernet1/3
+
+
+convert to wildcard
+D1
+10.1.4.4 255.255.255.252
+10.2.1.0 255.255.255.0
+10.2.2.0 255.255.255.0
+192.168.1.128 255.255.255.224
+
+D2
+10.1.4.8 255.255.255.252
+10.2.1.0 255.255.255.0
+10.2.2.0 255.255.255.0
+192.168.1.128 255.255.255.224
+
+R4
+10.1.1.8 255.255.255.252
+10.1.4.4 255.255.255.252
+10.1.4.8 255.255.255.252
+
+D1: 
+conf t
+router eigrp biteigrp
+ address-family ipv4 unicast autonomous-system 100
+ network 10.1.4.4 0.0.0.3
+ network 10.2.1.0 0.0.0.255
+ network 10.2.2.0 0.0.0.255
+ network 192.168.1.128 0.0.0.31
+ end 
+
+D2:
+conf t
+router eigrp biteigrp
+ address-family ipv4 unicast autonomous-system 100
+ network 10.1.4.8 0.0.0.3
+ network 10.2.1.0 0.0.0.255
+ network 10.2.2.0 0.0.0.255
+ network 192.168.1.128 0.0.0.31
+ end
+
+R4:32bit (CCNA)
+conf t
+router eigrp 100
+no auto-summary
+network 10.1.4.4 0.0.0.3
+network 10.1.4.8 0.0.0.3
+end
+
+how to check if eigrp is working
+show ip eigrp traffic
+show ip route eigrp
+show ip eigrp topology
+show ip protocols
+show ip eigrp neighbors
+
+TASK 3: OPEN SHORTEST PATH FIRST PROTOCOL: THE MOST SUPPORT PROTOCOL IN ROUTERS
+CISCO, JUNIPER, HUAWEI,FORTINET
+
+1. create your Areas: = 0 Backbone:
+
+R4
+C        4.4.4.4 is directly connected, Loopback4
+C        10.1.1.8/30 is directly connected, Ethernet1/2
+C        10.1.4.4/30 is directly connected, Ethernet1/0
+C        10.1.4.8/30 is directly connected, Ethernet1/1
+
+R3
+C        3.3.3.3 is directly connected, Loopback3
+C        10.1.1.4/30 is directly connected, Ethernet1/1
+C        10.1.1.8/30 is directly connected, Ethernet1/2
+
+R2
+C        2.2.2.2 is directly connected, Loopback2
+C        10.1.1.0/30 is directly connected, Ethernet1/2
+C        10.1.1.4/30 is directly connected, Ethernet1/1
+
+R1
+C        1.1.1.1 is directly connected, Loopback1
+C        10.1.1.0/30 is directly connected, Ethernet1/0
+C        207.7.7.0/24 is directly connected, Ethernet1/2
+C        208.8.8.0/24 is directly connected, Ethernet1/1
+C        209.9.9.0/24 is directly connected, Ethernet1/3
+
+
+-- clear ip ospf process
+R4:
+conf t
+int lo0
+ ip add 4.4.4.4 255.255.255.255
+router ospf 1
+router-id 4.4.4.4
+network 10.1.1.8 0.0.0.3 area 34
+end
+
+R3:
+conf t
+int lo0
+ ip add 3.3.3.3 255.255.255.255
+router ospf 1
+router-id 3.3.3.3
+network 10.1.1.8 0.0.0.3 area 34
+network 10.1.1.4 0.0.0.3 area 0
+end
+
+R2
+conf t
+int lo0
+ ip add 2.2.2.2 255.255.255.255
+router ospf 1
+router-id 2.2.2.2
+network 10.1.1.0 0.0.0.3 area 12
+network 10.1.1.4 0.0.0.3 area 0
+end
+
+R1
+conf t
+int lo0
+ ip add 1.1.1.1 255.255.255
+router ospf 1
+router-id 1.1.1.1
+network 10.1.1.1 0.0.0.3 area 12
+end
+
+
+how to check if ospf is working
+show ip protocols
+show ip ospf database
+show ip ospf neighbors
+show ip route ospf
+
+TASK 4:
+configure EBGP for R1 and isp1,isp2 ad isp3
+
+R1
+C        1.1.1.1 is directly connected, Loopback1
+C        10.1.1.0/30 is directly connected, Ethernet1/0
+C        207.7.7.0/24 is directly connected, Ethernet1/2
+C        208.8.8.0/24 is directly connected, Ethernet1/1
+C        209.9.9.0/24 is directly connected, Ethernet1/3
+
+Ethernet1/0                10.1.1.1        YES TFTP   up                    up      
+Ethernet1/1                208.8.8.1       YES TFTP   up                    up      
+Ethernet1/2                207.7.7.1       YES TFTP   up                    up      
+Ethernet1/3                209.9.9.1       YES TFTP   up                    up      
+Loopback1                  1.1.1.1         YES TFTP   up                    up 
+
+
+
+R1 BGP:
+conf t
+router bgp 1
+bgp log-neighbor-changes
+neighbor 208.8.8.4 remote-as 45
+neighbor 208.7.7.2 remote-as 2
+neighbor 209.9.9.3 remote-as 3
+network 10.0.0.0 Mask 255.255.255.252
+network 207.7.7.0 Mask 255.255.255.0
+network 208.8.8.0 Mask 255.255.255.0
+network 209.9.9.0 Mask 255.255.255.0
+end
+
+
+
+ISP1:
+C        24.2.4.0/24 is directly connected, Ethernet1/1
+C        44.44.44.44 is directly connected, Loopback0
+C        45.4.5.0/24 is directly connected, Ethernet1/2
+C        208.8.8.0/24 is directly connected, Ethernet1/3
+
+BGP ISP1:
+conf t
+router bgp 45
+bgp log-neighbor-changes
+neighbor 24.2.4.2 remote-as 2
+neighbor 45.4.5.5 remote-as 45
+neighbor 208.8.8.1 remote-as 1
+network 24.2.4.0 Mask 255.255.255.0
+network 45.4.5.0 Mask 255.255.255.0
+network 208.8.8.0 Mask 255.255.255.0
+network 44.44.44.44 Mask 255.255.255.255
+!pretendtobeaREAL ISP:
+network 0.0.0.0
+ip route 0.0.0.0 0.0.0.0 null 0
+ip route 10.0.0.0 255.0.0.0 208.8.8.1
+end
+
+ISP2:
+C        22.22.22.22 is directly connected, Loopback0
+C        24.2.4.0/24 is directly connected, Ethernet1/1
+C        25.2.5.0/24 is directly connected, Ethernet0/2
+C        32.3.2.0/24 is directly connected, Ethernet1/2
+C        207.7.7.0/24 is directly connected, Ethernet1/3
+
+BGP ISP2:
+conf t
+router bgp 2
+bgp log-neighbor-changes
+neighbor 207.7.7.1 remote-as 1
+neighbor 24.2.4.4 remote-as 45
+neighbor 25.2.5.5 remote-as 45
+neighbor 32.3.2.3 remote-as 3
+network 24.2.4.0 Mask 255.255.255.0
+network 25.2.5.0 Mask 255.255.255.0
+network 32.3.2.0 Mask 255.255.255.0
+network 22.22.22.22 Mask 255.255.255.255
+!pretendtobeaREAL ISP:
+network 0.0.0.0
+ip route 0.0.0.0 0.0.0.0 null 0
+ip route 10.0.0.0 255.0.0.0 207.7.7.1
+end
+
+
+@@ISP3:
+CONFIG T
+router bgp 3
+bgp log-neighbor-changes
+neighbor 32.3.2.2 remote-as 2
+neighbor 35.3.5.5 remote-as 45
+neighbor 209.9.9.1 remote-as 1
+network 209.9.9.0
+network 32.3.2.0 mask 255.255.255.0
+network 33.33.33.33 mask 255.255.255.255
+network 35.3.5.0 mask 255.255.255.0
+network 0.0.0.0
+ip route 0.0.0.0 0.0.0.0 null 0
+ip route 10.0.0.0 255.0.0.0 209.9.9.1
+end
+
+Isp4:
+config t
+int lo 8
+ ip add 8.8.8.8 255.255.255.255
+router bgp 45
+ bgp log-neighbor-changes
+ neighbor 25.2.5.2 remote-as 2
+ neighbor 35.3.5.3 remote-as 3
+ neighbor 45.4.5.4 remote-as 45
+ network 8.8.8.8 mask 255.255.255.255
+ network 55.55.55.55 mask 255.255.255.255
+ network 25.2.5.0 mask 255.255.255.0
+ network 35.3.5.0 mask 255.255.255.0
+ network 45.4.5.0 mask 255.255.255.0
+end
+
+show ip bgp summary
+show ip bgp neighbor
+show ip route bgp
+ping 8.8.8.8 !google DNS
+
+
+TASK 5: OSFP BGP EIGRP routing
+
+R1:
+conf t
+router ospf 1
+default-information originate
+end
+
+check 
+to ISP4
+show ip route ospf 
+ping from R4 the 8.8.8.8
+
+R4:
+conf t
+router eigrp 100
+redistribute ospf 1 metric 10000 100 255 1 1500
+end
+
+conf t
+router ospf 1
+redistribute eigrp 100 subnets
+end
+
+check R3
+show ip route ospf 
+ping from R4 and P1 the 8.8.8.8
+
+Put default route for P1
+conf t
+ip route 0.0.0.0 0.0.0.0 10.2.1.1
+end
+
+then ping 8.8.8.8
+traceroute 8.8.8.8
+
+ping again from P2
+
+
+
+check from D1 
+show ip route eigrp
+check from R3 
+show ip route ospf
